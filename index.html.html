@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rush Empire</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #FFD700;
+    --gold-dark: #B8860B;
+    --gold-light: #FFF176;
+    --bg: #0a0a0f;
+    --surface: #12121c;
+    --surface2: #1a1a2e;
+    --surface3: #16213e;
+    --accent: #e94560;
+    --green: #00ff88;
+    --red: #ff4444;
+    --blue: #4fc3f7;
+    --text: #e0e0f0;
+    --muted: #6b6b8a;
+    --border: #2a2a4a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    background-image:
+      radial-gradient(ellipse at 20% 50%, rgba(233,69,96,0.04) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgba(255,215,0,0.04) 0%, transparent 50%);
+  }
+
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, #0d0d1a 0%, #1a1a2e 100%);
+    border-bottom: 2px solid var(--gold-dark);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 4px 30px rgba(0,0,0,0.5);
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.2rem;
+    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold-dark) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    letter-spacing: 4px;
+    text-shadow: none;
+    filter: drop-shadow(0 0 20px rgba(255,215,0,0.3));
+  }
+
+  .money-display {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.5rem;
+    color: var(--gold);
+    text-shadow: 0 0 20px rgba(255,215,0,0.5);
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .money-display .label { font-family: 'Rajdhani', sans-serif; font-size: 0.8rem; color: var(--muted); letter-spacing: 2px; }
+
+  .mps-badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.9rem;
+    color: var(--green);
+    background: rgba(0,255,136,0.08);
+    border: 1px solid rgba(0,255,136,0.2);
+    padding: 4px 12px; border-radius: 4px;
+  }
+
+  /* NOTIFICATION */
+  #notification {
+    position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
+    background: var(--surface2);
+    border: 1px solid var(--gold-dark);
+    color: var(--gold);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.9rem;
+    padding: 10px 24px; border-radius: 4px;
+    z-index: 999;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  }
+  #notification.show { opacity: 1; }
+  #notification.danger { border-color: var(--red); color: var(--red); }
+  #notification.good { border-color: var(--green); color: var(--green); }
+
+  /* LAYOUT */
+  .game-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr 300px;
+    gap: 0;
+    min-height: calc(100vh - 65px);
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 20px;
+    display: flex; flex-direction: column; gap: 16px;
+  }
+
+  /* CLICK ZONE */
+  .click-zone {
+    background: var(--surface2);
+    padding: 30px 20px;
+    display: flex; flex-direction: column; align-items: center; gap: 20px;
+  }
+
+  /* RIGHT PANEL */
+  .right-panel {
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    padding: 20px;
+    display: flex; flex-direction: column; gap: 16px;
+    overflow-y: auto;
+  }
+
+  /* SECTION TITLE */
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.3rem;
+    letter-spacing: 3px;
+    color: var(--gold);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+    margin-bottom: 4px;
+  }
+
+  /* CLICK BUTTON */
+  .click-btn {
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #2a1a00, #1a0d00);
+    border: 4px solid var(--gold-dark);
+    cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3rem;
+    color: var(--gold);
+    transition: all 0.1s;
+    box-shadow: 0 0 30px rgba(255,215,0,0.2), inset 0 0 30px rgba(0,0,0,0.5);
+    position: relative;
+    user-select: none;
+  }
+  .click-btn:hover {
+    border-color: var(--gold);
+    box-shadow: 0 0 50px rgba(255,215,0,0.4), inset 0 0 20px rgba(255,215,0,0.05);
+    transform: scale(1.03);
+  }
+  .click-btn:active {
+    transform: scale(0.96);
+    box-shadow: 0 0 20px rgba(255,215,0,0.2);
+  }
+  .click-btn .sub { font-family: 'Rajdhani', sans-serif; font-size: 0.75rem; color: var(--gold-dark); letter-spacing: 2px; margin-top: -8px; }
+
+  .click-value {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.1rem; color: var(--gold);
+    background: rgba(255,215,0,0.06);
+    border: 1px solid rgba(255,215,0,0.15);
+    padding: 6px 16px; border-radius: 4px;
+  }
+
+  /* STATS PANEL */
+  .stats-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  }
+  .stat-card {
+    background: var(--surface3);
+    border: 1px solid var(--border);
+    padding: 10px 12px;
+    border-radius: 4px;
+  }
+  .stat-card .val { font-family: 'Share Tech Mono', monospace; font-size: 1rem; color: var(--gold); }
+  .stat-card .lbl { font-size: 0.72rem; color: var(--muted); letter-spacing: 1px; margin-top: 2px; }
+
+  /* SHOP ITEM */
+  .shop-item {
+    background: var(--surface3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .shop-item::before {
+    content: '';
+    position: absolute; top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: var(--gold-dark);
+    transition: background 0.2s;
+  }
+  .shop-item:hover { border-color: var(--gold-dark); transform: translateX(2px); }
+  .shop-item:hover::before { background: var(--gold); }
+  .shop-item.can-afford { border-color: rgba(255,215,0,0.3); }
+  .shop-item.can-afford::before { background: var(--gold); }
+  .shop-item.owned::before { background: var(--green); }
+  .shop-item.maxed { opacity: 0.5; cursor: not-allowed; }
+
+  .shop-item-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .shop-item-name { font-size: 1rem; font-weight: 700; color: var(--text); }
+  .shop-item-cost { font-family: 'Share Tech Mono', monospace; font-size: 0.85rem; color: var(--gold); white-space: nowrap; }
+  .shop-item-desc { font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
+  .shop-item-meta { display: flex; justify-content: space-between; margin-top: 8px; font-size: 0.75rem; }
+  .shop-item-owned { color: var(--green); font-family: 'Share Tech Mono'; }
+  .shop-item-income { color: var(--blue); }
+
+  /* BUSINESS */
+  .biz-card {
+    background: var(--surface3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px;
+    margin-bottom: 8px;
+  }
+  .biz-header { display: flex; justify-content: space-between; align-items: center; }
+  .biz-name { font-weight: 700; font-size: 1rem; }
+  .biz-status { font-size: 0.75rem; padding: 2px 8px; border-radius: 3px; font-family: 'Share Tech Mono'; }
+  .biz-status.active { background: rgba(0,255,136,0.1); color: var(--green); border: 1px solid rgba(0,255,136,0.3); }
+  .biz-status.closed { background: rgba(255,68,68,0.1); color: var(--red); border: 1px solid rgba(255,68,68,0.3); }
+  .biz-income { font-family: 'Share Tech Mono'; font-size: 0.9rem; color: var(--green); margin-top: 6px; }
+  .biz-risk { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+  .biz-bar-wrap { background: rgba(255,255,255,0.05); border-radius: 2px; height: 4px; margin-top: 8px; }
+  .biz-bar { height: 4px; border-radius: 2px; background: linear-gradient(90deg, var(--green), var(--gold)); transition: width 0.5s; }
+
+  /* EVENT LOG */
+  .event-log {
+    background: var(--surface3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
+    height: 180px;
+    overflow-y: auto;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.78rem;
+  }
+  .event-log::-webkit-scrollbar { width: 4px; }
+  .event-log::-webkit-scrollbar-track { background: transparent; }
+  .event-log::-webkit-scrollbar-thumb { background: var(--border); }
+  .log-entry { padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.04); color: var(--muted); }
+  .log-entry.good { color: var(--green); }
+  .log-entry.bad { color: var(--red); }
+  .log-entry.info { color: var(--gold); }
+
+  /* TAB SYSTEM */
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 12px; }
+  .tab-btn {
+    font-family: 'Bebas Neue'; letter-spacing: 2px; font-size: 1rem;
+    padding: 8px 16px; cursor: pointer;
+    background: none; border: none; color: var(--muted);
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+    transition: all 0.2s;
+  }
+  .tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+  .tab-btn:hover { color: var(--text); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* FLOAT COIN */
+  .float-coin {
+    position: fixed;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.1rem;
+    color: var(--gold);
+    pointer-events: none;
+    z-index: 9999;
+    animation: floatUp 1s ease-out forwards;
+  }
+  @keyframes floatUp {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-80px) scale(0.8); }
+  }
+
+  /* UPGRADES */
+  .upgrade-badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-family: 'Share Tech Mono';
+    padding: 1px 6px;
+    border-radius: 3px;
+    background: rgba(79,195,247,0.1);
+    color: var(--blue);
+    border: 1px solid rgba(79,195,247,0.2);
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  .prestige-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #1a0020, #2d0040);
+    border: 2px solid #9c27b0;
+    color: #ce93d8;
+    font-family: 'Bebas Neue'; letter-spacing: 3px; font-size: 1.1rem;
+    padding: 12px; cursor: pointer; border-radius: 4px;
+    transition: all 0.2s;
+    display: none;
+  }
+  .prestige-btn:hover { background: linear-gradient(135deg, #2d0040, #4a0060); box-shadow: 0 0 20px rgba(156,39,176,0.3); }
+  .prestige-btn.visible { display: block; }
+
+  .tax-bar-wrap { background: rgba(255,255,255,0.05); border-radius: 2px; height: 6px; margin-top: 8px; }
+  .tax-bar { height: 6px; border-radius: 2px; background: linear-gradient(90deg, var(--green), var(--gold), var(--red)); transition: width 1s; }
+
+  @media (max-width: 900px) {
+    .game-layout { grid-template-columns: 1fr; }
+    .sidebar, .right-panel { border: none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="notification"></div>
+
+<header>
+  <div class="logo">⚡ Rush Empire</div>
+  <div class="money-display">
+    <div>
+      <div class="label">NET WORTH</div>
+      <div id="money-display">$0</div>
+    </div>
+  </div>
+  <div class="mps-badge">+<span id="mps-display">0</span>/s</div>
+</header>
+
+<div class="game-layout">
+
+  <!-- LEFT SIDEBAR: STATS + LOG -->
+  <aside class="sidebar">
+    <div class="section-title">Empire Stats</div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="val" id="stat-total">$0</div>
+        <div class="lbl">TOTAL EARNED</div>
+      </div>
+      <div class="stat-card">
+        <div class="val" id="stat-clicks">0</div>
+        <div class="lbl">TOTAL CLICKS</div>
+      </div>
+      <div class="stat-card">
+        <div class="val" id="stat-cpc">$1</div>
+        <div class="lbl">PER CLICK</div>
+      </div>
+      <div class="stat-card">
+        <div class="val" id="stat-tax">0%</div>
+        <div class="lbl">TAX RATE</div>
+      </div>
+    </div>
+
+    <div class="section-title" style="margin-top:8px">Tax Pressure</div>
+    <div style="font-size:0.75rem; color:var(--muted); margin-bottom:4px">Government scrutiny rises with wealth</div>
+    <div class="tax-bar-wrap"><div class="tax-bar" id="tax-bar" style="width:0%"></div></div>
+
+    <div class="section-title" style="margin-top:8px">Event Log</div>
+    <div class="event-log" id="event-log">
+      <div class="log-entry info">[START] Welcome to Rush Empire. Click to earn!</div>
+    </div>
+
+    <button class="prestige-btn" id="prestige-btn" onclick="prestige()">✦ PRESTIGE ✦</button>
+  </aside>
+
+  <!-- CENTER: CLICK + BUSINESSES -->
+  <main class="click-zone">
+    <div class="section-title">Click to Earn</div>
+
+    <button class="click-btn" id="click-btn" onclick="handleClick(event)">
+      💰
+      <span class="sub">HUSTLE</span>
+    </button>
+
+    <div class="click-value">+<span id="cpc-label">$1</span> per click</div>
+
+    <div style="width:100%; max-width:500px">
+      <div class="section-title">Active Businesses</div>
+      <div id="biz-list">
+        <div style="color:var(--muted); font-size:0.85rem; padding:12px 0;">No businesses yet. Buy one from the shop →</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- RIGHT: SHOP -->
+  <aside class="right-panel">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('land')">Land</button>
+      <button class="tab-btn" onclick="switchTab('buildings')">Build</button>
+      <button class="tab-btn" onclick="switchTab('vehicles')">Cars</button>
+      <button class="tab-btn" onclick="switchTab('business')">Biz</button>
+      <button class="tab-btn" onclick="switchTab('upgrades')">⬆</button>
+    </div>
+
+    <!-- LAND TAB -->
+    <div id="tab-land" class="tab-content active"></div>
+    <!-- BUILDINGS TAB -->
+    <div id="tab-buildings" class="tab-content"></div>
+    <!-- VEHICLES TAB -->
+    <div id="tab-vehicles" class="tab-content"></div>
+    <!-- BUSINESS TAB -->
+    <div id="tab-business" class="tab-content"></div>
+    <!-- UPGRADES TAB -->
+    <div id="tab-upgrades" class="tab-content"></div>
+  </aside>
+
+</div>
+
+<script>
+// ===========================
+//  GAME STATE
+// ===========================
+let state = {
+  money: 0,
+  totalEarned: 0,
+  totalClicks: 0,
+  cpc: 1,         // $ per click
+  mps: 0,         // $ per second (passive)
+  taxRate: 0,     // 0–40%
+  taxPressure: 0, // 0–100
+  prestigeMultiplier: 1,
+  prestigeCount: 0,
+};
+
+// LAND ITEMS
+const landItems = [
+  { id: 'plot1',   name: 'Empty Plot',      icon: '🌱', cost: 50,      cpcBonus: 2,   mpsBonus: 0,   desc: 'A small piece of land. Start somewhere.',   owned: 0, max: 5 },
+  { id: 'plot2',   name: 'Downtown Lot',    icon: '🏙️', cost: 500,     cpcBonus: 10,  mpsBonus: 1,   desc: 'Prime city real estate.',                   owned: 0, max: 3 },
+  { id: 'plot3',   name: 'Industrial Zone', icon: '🏭', cost: 3000,    cpcBonus: 30,  mpsBonus: 5,   desc: 'Heavy industry territory.',                 owned: 0, max: 3 },
+  { id: 'plot4',   name: 'Tech Campus',     icon: '💻', cost: 20000,   cpcBonus: 100, mpsBonus: 20,  desc: 'Silicon Valley vibes.',                     owned: 0, max: 2 },
+  { id: 'plot5',   name: 'Island Estate',   icon: '🏝️', cost: 150000,  cpcBonus: 400, mpsBonus: 80,  desc: 'Private island — pure luxury.',             owned: 0, max: 1 },
+];
+
+// BUILDINGS
+const buildingItems = [
+  { id: 'shed',    name: 'Storage Shed',    icon: '🏚️', cost: 100,     cpcBonus: 3,   mpsBonus: 0.5, desc: 'A humble beginning.',                       owned: 0, max: 10 },
+  { id: 'shop',    name: 'Corner Shop',     icon: '🏪', cost: 800,     cpcBonus: 12,  mpsBonus: 2,   desc: 'Your first retail outlet.',                 owned: 0, max: 5 },
+  { id: 'office',  name: 'Office Building', icon: '🏢', cost: 5000,    cpcBonus: 50,  mpsBonus: 10,  desc: 'Suits and spreadsheets.',                   owned: 0, max: 4 },
+  { id: 'mall',    name: 'Shopping Mall',   icon: '🏬', cost: 30000,   cpcBonus: 200, mpsBonus: 40,  desc: 'Retail empire begins.',                     owned: 0, max: 2 },
+  { id: 'tower',   name: 'Empire Tower',    icon: '🗼', cost: 200000,  cpcBonus: 800, mpsBonus: 150, desc: 'Your name on the skyline.',                 owned: 0, max: 1 },
+];
+
+// VEHICLES
+const vehicleItems = [
+  { id: 'scooter', name: 'Scooter',         icon: '🛵', cost: 200,     cpcBonus: 5,   mpsBonus: 1,   desc: 'Get around faster. Earn more.',             owned: 0, max: 3 },
+  { id: 'sedan',   name: 'Sedan',           icon: '🚗', cost: 2000,    cpcBonus: 20,  mpsBonus: 4,   desc: 'A respectable ride.',                       owned: 0, max: 3 },
+  { id: 'suv',     name: 'Luxury SUV',      icon: '🚙', cost: 15000,   cpcBonus: 80,  mpsBonus: 15,  desc: 'Arrive in style.',                          owned: 0, max: 2 },
+  { id: 'sport',   name: 'Supercar',        icon: '🏎️', cost: 80000,   cpcBonus: 300, mpsBonus: 60,  desc: 'Zero to rich in 3 seconds.',                owned: 0, max: 2 },
+  { id: 'yacht',   name: 'Yacht',           icon: '🛥️', cost: 500000,  cpcBonus: 1000,mpsBonus: 250, desc: 'Why drive when you can sail?',              owned: 0, max: 1 },
+];
+
+// BUSINESS (risk-based)
+const businessItems = [
+  { id: 'food',    name: 'Street Food Cart', icon: '🌮', cost: 1000,   mpsBonus: 8,   riskPct: 5,   shutdownChance: 0.001, desc: 'Low margin, low risk. Hot dogs & hustle.', owned: false, active: true },
+  { id: 'cafe',    name: 'Coffee Shop',      icon: '☕', cost: 8000,   mpsBonus: 30,  riskPct: 10,  shutdownChance: 0.002, desc: 'Lattes and rent. Tax risk: medium.',       owned: false, active: true },
+  { id: 'gym',     name: 'Fitness Gym',      icon: '🏋️', cost: 25000,  mpsBonus: 80,  riskPct: 15,  shutdownChance: 0.003, desc: 'Memberships print money. Barely.',        owned: false, active: true },
+  { id: 'hotel',   name: 'Boutique Hotel',   icon: '🏨', cost: 100000, mpsBonus: 250, riskPct: 20,  shutdownChance: 0.004, desc: 'Big income, big oversight.',               owned: false, active: true },
+  { id: 'crypto',  name: 'Crypto Exchange',  icon: '₿',  cost: 500000, mpsBonus: 800, riskPct: 35,  shutdownChance: 0.008, desc: 'Massive gains. Government hates this.',   owned: false, active: true },
+];
+
+// UPGRADES
+const upgradeItems = [
+  { id: 'u1', name: 'Coffee Habit',       icon: '☕', cost: 500,     desc: 'Doubles your click power.',      effect: ()=>{ state.cpc *= 2; recalc(); }, owned: false },
+  { id: 'u2', name: 'Accountant',         icon: '📊', cost: 5000,    desc: 'Tax rate capped at 25%.',         effect: ()=>{ window.taxCap = 25; },      owned: false },
+  { id: 'u3', name: 'Political Donation', icon: '🤝', cost: 20000,   desc: 'Triples click power.',            effect: ()=>{ state.cpc *= 3; recalc(); }, owned: false },
+  { id: 'u4', name: 'Offshore Account',   icon: '🏦', cost: 50000,   desc: 'Eliminates tax pressure growth.', effect: ()=>{ window.noTaxGrowth = true; },owned: false },
+  { id: 'u5', name: 'Viral Marketing',    icon: '📱', cost: 100000,  desc: 'All passive income ×2.',          effect: ()=>{ window.mpsMultiplier = (window.mpsMultiplier||1)*2; recalc(); }, owned: false },
+  { id: 'u6', name: 'Empire Media',       icon: '📺', cost: 500000,  desc: 'Quadruples click power.',         effect: ()=>{ state.cpc *= 4; recalc(); }, owned: false },
+];
+
+window.taxCap = 40;
+window.noTaxGrowth = false;
+window.mpsMultiplier = 1;
+
+// ===========================
+//  RECALCULATE STATS
+// ===========================
+function recalc() {
+  let bonusCPC = 0, bonusMPS = 0;
+  [...landItems, ...buildingItems, ...vehicleItems].forEach(item => {
+    bonusCPC += item.cpcBonus * item.owned;
+    bonusMPS += item.mpsBonus * item.owned;
+  });
+  businessItems.forEach(b => {
+    if (b.owned && b.active) bonusMPS += b.mpsBonus;
+  });
+  state.mps = bonusMPS * window.mpsMultiplier;
+  // Base CPC is stored in state.cpc, we add passive cpc bonus
+  document.getElementById('cpc-label').textContent = fmt(state.cpc + bonusCPC);
+  document.getElementById('stat-cpc').textContent = fmt(state.cpc + bonusCPC);
+  document.getElementById('mps-display').textContent = fmt(state.mps);
+  document.getElementById('stat-tax').textContent = state.taxRate.toFixed(1) + '%';
+}
+
+function getEffectiveCPC() {
+  let bonusCPC = 0;
+  [...landItems, ...buildingItems, ...vehicleItems].forEach(item => {
+    bonusCPC += item.cpcBonus * item.owned;
+  });
+  return state.cpc + bonusCPC;
+}
+
+// ===========================
+//  FORMAT MONEY
+// ===========================
+function fmt(n) {
+  if (n >= 1e12) return '$' + (n/1e12).toFixed(2) + 'T';
+  if (n >= 1e9)  return '$' + (n/1e9).toFixed(2) + 'B';
+  if (n >= 1e6)  return '$' + (n/1e6).toFixed(2) + 'M';
+  if (n >= 1e3)  return '$' + (n/1e3).toFixed(2) + 'K';
+  return '$' + Math.floor(n);
+}
+
+// ===========================
+//  CLICK HANDLER
+// ===========================
+function handleClick(e) {
+  const earned = getEffectiveCPC() * state.prestigeMultiplier;
+  addMoney(earned);
+  state.totalClicks++;
+  document.getElementById('stat-clicks').textContent = state.totalClicks.toLocaleString();
+
+  // Float label
+  const el = document.createElement('div');
+  el.className = 'float-coin';
+  el.textContent = '+' + fmt(earned);
+  el.style.left = (e.clientX - 20) + 'px';
+  el.style.top  = (e.clientY - 20) + 'px';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 1000);
+
+  // Tax pressure grows slowly with clicks when rich
+  if (!window.noTaxGrowth && state.money > 5000) {
+    state.taxPressure = Math.min(100, state.taxPressure + 0.05);
+    updateTaxUI();
+  }
+}
+
+// ===========================
+//  MONEY HELPERS
+// ===========================
+function addMoney(amount) {
+  // Apply tax
+  const net = amount * (1 - state.taxRate / 100);
+  state.money += net;
+  state.totalEarned += net;
+  updateMoneyUI();
+  checkPrestige();
+}
+
+function spendMoney(amount) {
+  if (state.money < amount) return false;
+  state.money -= amount;
+  updateMoneyUI();
+  return true;
+}
+
+function updateMoneyUI() {
+  document.getElementById('money-display').textContent = fmt(state.money);
+  document.getElementById('stat-total').textContent = fmt(state.totalEarned);
+  renderShop();
+}
+
+function updateTaxUI() {
+  const effective = Math.min(state.taxPressure * 0.4, window.taxCap);
+  state.taxRate = effective;
+  document.getElementById('tax-bar').style.width = state.taxPressure + '%';
+  document.getElementById('stat-tax').textContent = state.taxRate.toFixed(1) + '%';
+}
+
+// ===========================
+//  SHOP RENDERING
+// ===========================
+function renderShop() {
+  renderCategory('tab-land', landItems, 'land');
+  renderCategory('tab-buildings', buildingItems, 'building');
+  renderCategory('tab-vehicles', vehicleItems, 'vehicle');
+  renderBusiness();
+  renderUpgrades();
+}
+
+function renderCategory(tabId, items, type) {
+  const el = document.getElementById(tabId);
+  el.innerHTML = items.map(item => {
+    const affordable = state.money >= item.cost;
+    const maxed = item.owned >= item.max;
+    return `<div class="shop-item ${affordable ? 'can-afford' : ''} ${item.owned > 0 ? 'owned' : ''} ${maxed ? 'maxed' : ''}"
+      onclick="${maxed ? '' : `buyItem('${type}','${item.id}')`}">
+      <div class="shop-item-header">
+        <div class="shop-item-name">${item.icon} ${item.name}</div>
+        <div class="shop-item-cost">${maxed ? 'MAXED' : fmt(item.cost)}</div>
+      </div>
+      <div class="shop-item-desc">${item.desc}</div>
+      <div class="shop-item-meta">
+        <div class="shop-item-owned">Owned: ${item.owned}/${item.max}</div>
+        <div class="shop-item-income">+${fmt(item.mpsBonus)}/s | +${fmt(item.cpcBonus)}/click</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderBusiness() {
+  const el = document.getElementById('tab-business');
+  el.innerHTML = businessItems.map(b => {
+    const affordable = state.money >= b.cost;
+    if (!b.owned) {
+      return `<div class="shop-item ${affordable ? 'can-afford' : ''}" onclick="buyBusiness('${b.id}')">
+        <div class="shop-item-header">
+          <div class="shop-item-name">${b.icon} ${b.name}</div>
+          <div class="shop-item-cost">${fmt(b.cost)}</div>
+        </div>
+        <div class="shop-item-desc">${b.desc}</div>
+        <div class="shop-item-meta">
+          <div class="shop-item-income">+${fmt(b.mpsBonus)}/s passive</div>
+          <div style="color:var(--red); font-size:0.75rem">Risk: ${b.riskPct}%</div>
+        </div>
+      </div>`;
+    } else {
+      return `<div class="biz-card">
+        <div class="biz-header">
+          <div class="biz-name">${b.icon} ${b.name}</div>
+          <div class="biz-status ${b.active ? 'active' : 'closed'}">${b.active ? 'ACTIVE' : 'SHUTDOWN'}</div>
+        </div>
+        <div class="biz-income">${b.active ? '+' + fmt(b.mpsBonus) + '/s' : 'No income'}</div>
+        <div class="biz-risk">Shutdown risk: ${b.riskPct}% | ${b.active ? 'Running smooth' : 'Rebuilding...'}</div>
+        ${!b.active ? `<button onclick="reopenBusiness('${b.id}')" style="margin-top:8px;background:rgba(0,255,136,0.1);border:1px solid var(--green);color:var(--green);padding:4px 12px;cursor:pointer;border-radius:3px;font-family:Rajdhani;font-size:0.85rem;">Reopen (${fmt(b.cost * 0.3)})</button>` : ''}
+      </div>`;
+    }
+  }).join('');
+
+  // Also update center biz list
+  const bl = document.getElementById('biz-list');
+  const owned = businessItems.filter(b => b.owned);
+  if (!owned.length) {
+    bl.innerHTML = '<div style="color:var(--muted);font-size:0.85rem;padding:12px 0;">No businesses yet. Buy one from the shop →</div>';
+    return;
+  }
+  bl.innerHTML = owned.map(b => `
+    <div class="biz-card">
+      <div class="biz-header">
+        <div class="biz-name">${b.icon} ${b.name}</div>
+        <div class="biz-status ${b.active ? 'active' : 'closed'}">${b.active ? '● ACTIVE' : '✕ SHUTDOWN'}</div>
+      </div>
+      <div class="biz-income" style="margin-top:4px">${b.active ? '+' + fmt(b.mpsBonus) + '/s' : 'No income'}</div>
+      <div class="biz-bar-wrap"><div class="biz-bar" style="width:${b.active ? 100 : 0}%"></div></div>
+    </div>`).join('');
+}
+
+function renderUpgrades() {
+  const el = document.getElementById('tab-upgrades');
+  el.innerHTML = upgradeItems.map(u => {
+    if (u.owned) return `<div class="shop-item owned" style="opacity:0.6;cursor:default">
+      <div class="shop-item-header"><div class="shop-item-name">${u.icon} ${u.name} <span class="upgrade-badge">OWNED</span></div></div>
+      <div class="shop-item-desc">${u.desc}</div></div>`;
+    const affordable = state.money >= u.cost;
+    return `<div class="shop-item ${affordable ? 'can-afford' : ''}" onclick="buyUpgrade('${u.id}')">
+      <div class="shop-item-header">
+        <div class="shop-item-name">${u.icon} ${u.name}</div>
+        <div class="shop-item-cost">${fmt(u.cost)}</div>
+      </div>
+      <div class="shop-item-desc">${u.desc}</div>
+    </div>`;
+  }).join('');
+}
+
+// ===========================
+//  BUY FUNCTIONS
+// ===========================
+function buyItem(type, id) {
+  let list = type === 'land' ? landItems : type === 'building' ? buildingItems : vehicleItems;
+  const item = list.find(i => i.id === id);
+  if (!item || item.owned >= item.max) return;
+  if (!spendMoney(item.cost)) { notify('Not enough money!', 'danger'); return; }
+  item.owned++;
+  item.cost = Math.floor(item.cost * 1.5); // price increases
+  recalc();
+  renderShop();
+  addLog(`Purchased ${item.icon} ${item.name}`, 'good');
+  notify(`${item.icon} ${item.name} acquired!`, 'good');
+}
+
+function buyBusiness(id) {
+  const b = businessItems.find(x => x.id === id);
+  if (!b || b.owned) return;
+  if (!spendMoney(b.cost)) { notify('Not enough money!', 'danger'); return; }
+  b.owned = true; b.active = true;
+  recalc(); renderShop();
+  addLog(`Launched business: ${b.icon} ${b.name}`, 'info');
+  notify(`${b.icon} ${b.name} launched!`, 'good');
+}
+
+function reopenBusiness(id) {
+  const b = businessItems.find(x => x.id === id);
+  if (!b || !b.owned || b.active) return;
+  const cost = b.cost * 0.3;
+  if (!spendMoney(cost)) { notify('Not enough money to reopen!', 'danger'); return; }
+  b.active = true;
+  recalc(); renderShop();
+  addLog(`${b.icon} ${b.name} reopened!`, 'good');
+  notify(`${b.icon} ${b.name} back in business!`, 'good');
+}
+
+function buyUpgrade(id) {
+  const u = upgradeItems.find(x => x.id === id);
+  if (!u || u.owned) return;
+  if (!spendMoney(u.cost)) { notify('Not enough money!', 'danger'); return; }
+  u.owned = true;
+  u.effect();
+  renderShop();
+  addLog(`Upgrade unlocked: ${u.icon} ${u.name}`, 'info');
+  notify(`Upgrade: ${u.name} activated!`, 'good');
+}
+
+// ===========================
+//  PRESTIGE
+// ===========================
+function checkPrestige() {
+  const btn = document.getElementById('prestige-btn');
+  if (state.totalEarned >= 1000000) btn.classList.add('visible');
+}
+
+function prestige() {
+  if (state.totalEarned < 1000000) return;
+  if (!confirm('PRESTIGE: Reset your empire for a permanent 2× multiplier?')) return;
+
+  state.prestigeCount++;
+  state.prestigeMultiplier *= 2;
+  state.money = 0;
+  state.totalEarned = 0;
+  state.totalClicks = 0;
+  state.cpc = 1;
+  state.mps = 0;
+  state.taxRate = 0;
+  state.taxPressure = 0;
+  window.taxCap = 40;
+  window.noTaxGrowth = false;
+  window.mpsMultiplier = 1;
+
+  landItems.forEach(i => { i.owned = 0; i.cost = [50,500,3000,20000,150000][[landItems.indexOf(i)]]; });
+  buildingItems.forEach(i => { i.owned = 0; i.cost = [100,800,5000,30000,200000][[buildingItems.indexOf(i)]]; });
+  vehicleItems.forEach(i => { i.owned = 0; i.cost = [200,2000,15000,80000,500000][[vehicleItems.indexOf(i)]]; });
+  businessItems.forEach(b => { b.owned = false; b.active = true; });
+  upgradeItems.forEach(u => { u.owned = false; });
+
+  recalc(); renderShop(); updateMoneyUI();
+  addLog(`⭐ PRESTIGE #${state.prestigeCount}! Multiplier now ×${state.prestigeMultiplier}`, 'info');
+  notify(`PRESTIGE! ×${state.prestigeMultiplier} multiplier active!`, 'good');
+  document.getElementById('prestige-btn').classList.remove('visible');
+}
+
+// ===========================
+//  LOG
+// ===========================
+function addLog(msg, type = '') {
+  const log = document.getElementById('event-log');
+  const now = new Date();
+  const time = now.toTimeString().slice(0,8);
+  const entry = document.createElement('div');
+  entry.className = 'log-entry ' + type;
+  entry.textContent = `[${time}] ${msg}`;
+  log.insertBefore(entry, log.firstChild);
+  if (log.children.length > 50) log.removeChild(log.lastChild);
+}
+
+// ===========================
+//  NOTIFY
+// ===========================
+let notifTimer;
+function notify(msg, type = '') {
+  const n = document.getElementById('notification');
+  n.textContent = msg;
+  n.className = 'show ' + type;
+  clearTimeout(notifTimer);
+  notifTimer = setTimeout(() => n.className = '', 2500);
+}
+
+// ===========================
+//  TAB SWITCH
+// ===========================
+function switchTab(name) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ===========================
+//  GAME LOOP
+// ===========================
+let lastTick = Date.now();
+function gameLoop() {
+  const now = Date.now();
+  const dt = (now - lastTick) / 1000;
+  lastTick = now;
+
+  if (state.mps > 0) {
+    addMoney(state.mps * dt);
+  }
+
+  // Tax pressure passive growth
+  if (!window.noTaxGrowth && state.money > 10000) {
+    state.taxPressure = Math.min(100, state.taxPressure + 0.01 * dt);
+    updateTaxUI();
+  }
+
+  // Business shutdown/recovery events (random)
+  businessItems.forEach(b => {
+    if (b.owned && b.active) {
+      if (Math.random() < b.shutdownChance * (1 + state.taxPressure / 100)) {
+        b.active = false;
+        recalc(); renderShop();
+        addLog(`⚠️ Government shut down ${b.name}! Tax pressure too high.`, 'bad');
+        notify(`${b.icon} ${b.name} was SHUTDOWN by authorities!`, 'danger');
+      }
+    }
+  });
+
+  requestAnimationFrame(gameLoop);
+}
+
+// ===========================
+//  INIT
+// ===========================
+recalc();
+renderShop();
+updateMoneyUI();
+gameLoop();
+
+// Autosave hint log every 2 min
+setInterval(() => {
+  if (state.totalEarned > 0)
+    addLog(`Empire status: ${fmt(state.money)} | MPS: ${fmt(state.mps)}`, 'info');
+}, 120000);
+</script>
+</body>
+</html>
